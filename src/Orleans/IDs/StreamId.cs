@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using Orleans.Concurrency;
@@ -22,7 +24,17 @@ namespace Orleans.Streams
         private readonly StreamIdInternerKey key;
 
         // Keep public, similar to GrainId.GetPrimaryKey. Some app scenarios might need that.
-        public Guid Guid { get { return key.Guid; } }
+        public Guid Guid {
+            get {
+                if (!IsGuid)
+                    throw new InvalidOperationException("Not a GUID.");
+                return new Guid(key.Bytes);
+            }
+        }
+
+        public bool IsGuid { get { return key.Bytes.Length == 16; } }
+
+        public byte[] Bytes { get { return key.Bytes; } }
 
         // I think it might be more clear if we called this the ActivationNamespace.
         public string Namespace { get { return key.Namespace; } }
@@ -33,6 +45,11 @@ namespace Orleans.Streams
         private StreamId(StreamIdInternerKey key)
         {
             this.key = key;
+        }
+
+        internal static StreamId GetStreamId(byte[] id, string providerName, string streamNamespace)
+        {
+            return FindOrCreateStreamId(new StreamIdInternerKey(id, providerName, streamNamespace));
         }
 
         internal static StreamId GetStreamId(Guid guid, string providerName, string streamNamespace)
@@ -77,22 +94,22 @@ namespace Orleans.Streams
         {
             if (uniformHashCache == 0)
             {
-                byte[] guidBytes = Guid.ToByteArray();
+                byte[] idBytes = Bytes;
                 byte[] providerBytes = Encoding.UTF8.GetBytes(ProviderName);
                 byte[] allBytes;
                 if (Namespace == null)
                 {
-                    allBytes = new byte[guidBytes.Length + providerBytes.Length];
-                    Array.Copy(guidBytes, allBytes, guidBytes.Length);
-                    Array.Copy(providerBytes, 0, allBytes, guidBytes.Length, providerBytes.Length);
+                    allBytes = new byte[idBytes.Length + providerBytes.Length];
+                    Array.Copy(idBytes, allBytes, idBytes.Length);
+                    Array.Copy(providerBytes, 0, allBytes, idBytes.Length, providerBytes.Length);
                 }
                 else
                 {
                     byte[] namespaceBytes = Encoding.UTF8.GetBytes(Namespace);
-                    allBytes = new byte[guidBytes.Length + providerBytes.Length + namespaceBytes.Length];
-                    Array.Copy(guidBytes, allBytes, guidBytes.Length);
-                    Array.Copy(providerBytes, 0, allBytes, guidBytes.Length, providerBytes.Length);
-                    Array.Copy(namespaceBytes, 0, allBytes, guidBytes.Length + providerBytes.Length, namespaceBytes.Length);
+                    allBytes = new byte[idBytes.Length + providerBytes.Length + namespaceBytes.Length];
+                    Array.Copy(idBytes, allBytes, idBytes.Length);
+                    Array.Copy(providerBytes, 0, allBytes, idBytes.Length, providerBytes.Length);
+                    Array.Copy(namespaceBytes, 0, allBytes, idBytes.Length + providerBytes.Length, namespaceBytes.Length);
                 }
                 uniformHashCache = JenkinsHash.ComputeHash(allBytes);
             }
@@ -101,9 +118,10 @@ namespace Orleans.Streams
 
         public override string ToString()
         {
+            var idString = IsGuid ? Guid.ToString() : Convert.ToBase64String(Bytes);
             return Namespace == null ? 
-                Guid.ToString() : 
-                String.Format("{0}{1}-{2}", Namespace != null ? (String.Format("{0}-", Namespace)) : "", Guid, ProviderName);
+                idString : 
+                String.Format("{0}{1}-{2}", Namespace != null ? (String.Format("{0}-", Namespace)) : "", idString, ProviderName);
         }
 
         #region ISerializable Members
@@ -111,7 +129,7 @@ namespace Orleans.Streams
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             // Use the AddValue method to specify serialized values.
-            info.AddValue("Guid", Guid, typeof(Guid));
+            info.AddValue("Bytes", Bytes, typeof(byte[]));
             info.AddValue("ProviderName", ProviderName, typeof(string));
             info.AddValue("Namespace", Namespace, typeof(string));
         }
@@ -120,10 +138,10 @@ namespace Orleans.Streams
         protected StreamId(SerializationInfo info, StreamingContext context)
         {
             // Reset the property value using the GetValue method.
-            var guid = (Guid) info.GetValue("Guid", typeof(Guid));
+            var id = (Guid) info.GetValue("Bytes", typeof(byte[]));
             var providerName = (string) info.GetValue("ProviderName", typeof(string));
             var nameSpace = (string) info.GetValue("Namespace", typeof(string));
-            key = new StreamIdInternerKey(guid, providerName, nameSpace);
+            key = new StreamIdInternerKey(id, providerName, nameSpace);
         }
         #endregion
     }
@@ -132,18 +150,22 @@ namespace Orleans.Streams
     [Immutable]
     internal struct StreamIdInternerKey : IComparable<StreamIdInternerKey>, IEquatable<StreamIdInternerKey>
     {
-        internal readonly Guid Guid;
+        internal readonly byte[] Bytes;
         internal readonly string ProviderName;
         internal readonly string Namespace;
 
         public StreamIdInternerKey(Guid guid, string providerName, string streamNamespace)
+            : this(guid.ToByteArray(), providerName, streamNamespace)
+        { }
+
+        public StreamIdInternerKey(byte[] id, string providerName, string streamNamespace)
         {
             if (string.IsNullOrWhiteSpace(providerName))
             {
                 throw new ArgumentException("Provider name is null or whitespace", "providerName");
             }
 
-            Guid = guid;
+            Bytes = id;
             ProviderName = providerName;
             if (streamNamespace == null)
             {
@@ -162,7 +184,7 @@ namespace Orleans.Streams
 
         public int CompareTo(StreamIdInternerKey other)
         {
-            int cmp1 = Guid.CompareTo(other.Guid);
+            int cmp1 = StructuralComparisons.StructuralComparer.Compare(Bytes, other.Bytes);
             if (cmp1 == 0)
             {
                 int cmp2 = string.Compare(ProviderName, other.ProviderName, StringComparison.Ordinal);
@@ -174,12 +196,12 @@ namespace Orleans.Streams
 
         public bool Equals(StreamIdInternerKey other)
         {
-            return Guid.Equals(other.Guid) && Object.Equals(ProviderName, other.ProviderName) && Object.Equals(Namespace, other.Namespace);
+            return Bytes.SequenceEqual(other.Bytes) && Object.Equals(ProviderName, other.ProviderName) && Object.Equals(Namespace, other.Namespace);
         }
 
         public override int GetHashCode()
         {
-            return Guid.GetHashCode() ^ (ProviderName != null ? ProviderName.GetHashCode() : 0) ^ (Namespace != null ? Namespace.GetHashCode() : 0);
+            return Bytes.GetHashCode() ^ (ProviderName != null ? ProviderName.GetHashCode() : 0) ^ (Namespace != null ? Namespace.GetHashCode() : 0);
         }
     }
 }

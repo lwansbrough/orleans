@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Globalization;
+using System.Linq;
 using System.IO;
 using System.Text;
 using Orleans.Serialization;
@@ -305,7 +306,7 @@ namespace Orleans.Runtime
         {
             return TypeCodeData == other.TypeCodeData
                    && (!HasKeyExt || KeyExt == other.KeyExt)
-                   && StructuralComparisons.StructuralEqualityComparer.Equals(KeyBytes, other.KeyBytes);
+                   && KeyBytes.SequenceEqual(other.KeyBytes);
         }
 
         // We really want CompareTo to be as fast as possible, as a minimum cost, as close to native as possible.
