@@ -471,6 +471,8 @@ namespace Orleans.Serialization
         {
             Write(key.N0);
             Write(key.N1);
+            Write((short)key.KeyBytes.Length);
+            Write(key.KeyBytes);
             Write(key.TypeCodeData);
             Write(key.KeyExt);
         }

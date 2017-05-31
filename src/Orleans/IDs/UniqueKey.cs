@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -26,6 +27,7 @@ namespace Orleans.Runtime
             GeoClient = 7,
         }
 
+        public byte[] KeyBytes { get; private set; }
         public UInt64 N0 { get; private set; }
         public UInt64 N1 { get; private set; }
         public UInt64 TypeCodeData { get; private set; }
@@ -46,7 +48,7 @@ namespace Orleans.Runtime
 
         public bool IsLongKey
         {
-            get { return N0 == 0; }
+            get { return KeyBytes.Length == 16 && N0 == 0; }
         }
 
         public bool IsSystemTargetKey
@@ -74,6 +76,7 @@ namespace Orleans.Runtime
                 N0 = 0,
                 N1 = 0,
                 TypeCodeData = 0,
+                KeyBytes = null,
                 KeyExt = null
             };
 
@@ -91,6 +94,7 @@ namespace Orleans.Runtime
                 var fields = trimmed.Split(KeyExtSeparationChar, 2);
                 var n0 = ulong.Parse(fields[0].Substring(0, 16), NumberStyles.HexNumber);
                 var n1 = ulong.Parse(fields[0].Substring(16, 16), NumberStyles.HexNumber);
+                var bytes = ParseHexString(fields[0]);
                 var typeCodeData = ulong.Parse(fields[0].Substring(32, 16), NumberStyles.HexNumber);
                 string keyExt = null;
                 switch (fields.Length)
@@ -106,18 +110,40 @@ namespace Orleans.Runtime
                         }
                         break;
                 }
-                return NewKey(n0, n1, typeCodeData, keyExt);
+                return NewKey(n0, n1, bytes, typeCodeData, keyExt);
             }
         }
 
-        private static UniqueKey NewKey(ulong n0, ulong n1, Category category, long typeData, string keyExt)
+        // Fast hex parsing provided by CainKellye on StackOverflow:
+        // https://stackoverflow.com/questions/321370/how-can-i-convert-a-hex-string-to-a-byte-array
+        private static byte[] ParseHexString(string hex)
+        {
+            if (hex.Length % 2 != 0)
+                throw new ArgumentException("Hex string must have an even number of hexits.");
+
+            byte[] bytes = new byte[hex.Length / 2];
+
+            for (int i = 0; i < hex.Length / 2; ++i)
+            {
+                bytes[i] = (byte)((GetHexVal(hex[i << 1]) << 4) + (GetHexVal(hex[(i << 1) + 1])));
+            }
+
+            return bytes;
+        }
+
+        private static int GetHexVal(char hex) {
+            int val = (int)hex;
+            return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
+        }
+
+        private static UniqueKey NewKey(ulong n0, ulong n1, byte[] bytes, Category category, long typeData, string keyExt)
         {
             if (category != Category.KeyExtGrain && category != Category.GeoClient && keyExt != null)
                 throw new ArgumentException("Only key extended grains can specify a non-null key extension.");
 
             var typeCodeData = ((ulong)category << 56) + ((ulong)typeData & 0x00FFFFFFFFFFFFFF);
 
-            return NewKey(n0, n1, typeCodeData, keyExt);
+            return NewKey(n0, n1, bytes, typeCodeData, keyExt);
         }
 
         internal static UniqueKey NewKey(long longKey, Category category = Category.None, long typeData = 0, string keyExt = null)
@@ -125,7 +151,12 @@ namespace Orleans.Runtime
             ThrowIfIsSystemTargetKey(category);
 
             var n1 = unchecked((ulong)longKey);
-            return NewKey(0, n1, category, typeData, keyExt);
+            var n1Bytes = BitConverter.GetBytes(n1);
+
+            var bytes = new byte[16];
+            Array.Copy(n1Bytes, 0, bytes, 8, 8);
+            
+            return NewKey(0, n1, bytes, category, typeData, keyExt);
         }
 
         public static UniqueKey NewKey()
@@ -140,7 +171,19 @@ namespace Orleans.Runtime
             var guidBytes = guid.ToByteArray();
             var n0 = BitConverter.ToUInt64(guidBytes, 0);
             var n1 = BitConverter.ToUInt64(guidBytes, 8);
-            return NewKey(n0, n1, category, typeData, keyExt);
+            return NewKey(n0, n1, guidBytes, category, typeData, keyExt);
+        }
+
+        internal static UniqueKey NewKey(byte[] bytes, Category category = Category.None, long typeData = 0)
+        {
+            ThrowIfIsSystemTargetKey(category);
+
+            var nBytes = new byte[16];
+            Array.Copy(bytes, 0, nBytes, 0, Math.Min(bytes.Length, 16));
+            var n0 = BitConverter.ToUInt64(nBytes, 0);
+            var n1 = BitConverter.ToUInt64(nBytes, 8);
+
+            return NewKey(n0, n1, bytes, category, typeData, null);
         }
 
         public static UniqueKey NewSystemTargetKey(Guid guid, long typeData)
@@ -148,22 +191,24 @@ namespace Orleans.Runtime
             var guidBytes = guid.ToByteArray();
             var n0 = BitConverter.ToUInt64(guidBytes, 0);
             var n1 = BitConverter.ToUInt64(guidBytes, 8);
-            return NewKey(n0, n1, Category.SystemTarget, typeData, null);
+            return NewKey(n0, n1, guidBytes, Category.SystemTarget, typeData, null);
         }
 
         public static UniqueKey NewSystemTargetKey(short systemId)
         {
-            ulong n1 = unchecked((ulong)systemId);
-            return NewKey(0, n1, Category.SystemTarget, 0, null);
+            var n1 = unchecked((ulong)systemId);
+            var n1Bytes = BitConverter.GetBytes(n1);
+            return NewKey(0, n1, n1Bytes, Category.SystemTarget, 0, null);
         }
 
         public static UniqueKey NewGrainServiceKey(short key, long typeData)
         {
-            ulong n1 = unchecked((ulong)key);
-            return NewKey(0, n1, Category.SystemTarget, typeData, null);
+            var n1 = unchecked((ulong)key);
+            var n1Bytes = BitConverter.GetBytes(n1);
+            return NewKey(0, n1, n1Bytes, Category.SystemTarget, typeData, null);
         }
 
-        internal static UniqueKey NewKey(ulong n0, ulong n1, ulong typeCodeData, string keyExt)
+        internal static UniqueKey NewKey(ulong n0, ulong n1, byte[] bytes, ulong typeCodeData, string keyExt)
         {
             ValidateKeyExt(keyExt, typeCodeData);
             return
@@ -171,6 +216,7 @@ namespace Orleans.Runtime
                 {
                     N0 = n0,
                     N1 = n1,
+                    KeyBytes = bytes,
                     TypeCodeData = typeCodeData,
                     KeyExt = keyExt
                 };
@@ -198,9 +244,20 @@ namespace Orleans.Runtime
                         methodName));
         }
 
+        private void ThrowIfKeyBytesTooLong(string methodName, int maxLength)
+        {
+            if (KeyBytes.Length > maxLength)
+                throw new InvalidOperationException(
+                    string.Format(
+                        "This overload of {0} cannot be used if the grain uses a primary key whose data does not "
+                        + "fit within the size constraints of the return type.",
+                        methodName));
+        }
+
         public long PrimaryKeyToLong(out string extendedKey)
         {
             ThrowIfIsNotLong();
+            ThrowIfKeyBytesTooLong("UniqueKey.PrimaryKeyToLong", 8);
 
             extendedKey = this.KeyExt;
             return unchecked((long)N1);
@@ -215,6 +272,7 @@ namespace Orleans.Runtime
 
         public Guid PrimaryKeyToGuid(out string extendedKey)
         {
+            ThrowIfKeyBytesTooLong("UniqueKey.PrimaryKeyToGuid", 16);
             extendedKey = this.KeyExt;
             return ConvertToGuid();
         }
@@ -245,23 +303,23 @@ namespace Orleans.Runtime
         // No function calls, no boxing, inline.
         public bool Equals(UniqueKey other)
         {
-            return N0 == other.N0
-                   && N1 == other.N1
-                   && TypeCodeData == other.TypeCodeData
-                   && (!HasKeyExt || KeyExt == other.KeyExt);
+            return TypeCodeData == other.TypeCodeData
+                   && (!HasKeyExt || KeyExt == other.KeyExt)
+                   && StructuralComparisons.StructuralEqualityComparer.Equals(KeyBytes, other.KeyBytes);
         }
 
         // We really want CompareTo to be as fast as possible, as a minimum cost, as close to native as possible.
         // No function calls, no boxing, inline.
         public int CompareTo(UniqueKey other)
         {
+            var bytesCmp = KeyBytes.Length < other.KeyBytes.Length ? -1
+                         : KeyBytes.Length > other.KeyBytes.Length ? 1
+                         : StructuralComparisons.StructuralComparer.Compare(KeyBytes, other.KeyBytes);
+
             return TypeCodeData < other.TypeCodeData ? -1
                : TypeCodeData > other.TypeCodeData ? 1
-               : N0 < other.N0 ? -1
-               : N0 > other.N0 ? 1
-               : N1 < other.N1 ? -1
-               : N1 > other.N1 ? 1
                : !HasKeyExt || KeyExt == null ? 0
+               : bytesCmp != 0 ? bytesCmp
                : String.Compare(KeyExt, other.KeyExt, StringComparison.Ordinal);
         }
 
@@ -310,7 +368,11 @@ namespace Orleans.Runtime
         internal string ToHexString()
         {
             var s = new StringBuilder();
-            s.AppendFormat("{0:x16}{1:x16}{2:x16}", N0, N1, TypeCodeData);
+
+            for (var i = 0; i < KeyBytes.Length; i++)
+                s.AppendFormat("{0:x16}", KeyBytes[i]);
+
+            s.AppendFormat("{0:x16}", TypeCodeData);
             if (!HasKeyExt) return s.ToString();
 
             s.Append("+");

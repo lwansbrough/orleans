@@ -484,9 +484,11 @@ namespace Orleans.Serialization
         {
             ulong n0 = ReadULong();
             ulong n1 = ReadULong();
+            short length = ReadShort();
+            byte[] bytes = ReadBytes(length);
             ulong typeCodeData = ReadULong();
             string keyExt = ReadString();
-            return UniqueKey.NewKey(n0, n1, typeCodeData, keyExt);
+            return UniqueKey.NewKey(n0, n1, bytes, typeCodeData, keyExt);
         }
 
         internal Guid ReadGuid()

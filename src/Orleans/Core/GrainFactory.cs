@@ -57,7 +57,18 @@ namespace Orleans
         internal delegate object GrainReferenceCaster(IAddressable existingReference);
 
         /// <inheritdoc />
-        public TGrainInterface GetGrain<TGrainInterface>(Guid primaryKey, string grainClassNamePrefix = null) where TGrainInterface : IGrainWithGuidKey
+        public TGrainInterface GetGrain<TGrainInterface>(byte[] primaryKey, string grainClassNamePrefix = null)
+            where TGrainInterface : IGrainWithIntegerCompoundKey
+        {
+            Type interfaceType = typeof(TGrainInterface);
+            var implementation = this.GetGrainClassData(interfaceType, grainClassNamePrefix);
+            var grainId = GrainId.GetGrainId(implementation.GetTypeCode(interfaceType), primaryKey);
+            return this.Cast<TGrainInterface>(this.MakeGrainReferenceFromType(interfaceType, grainId));
+        }
+
+        /// <inheritdoc />
+        public TGrainInterface GetGrain<TGrainInterface>(Guid primaryKey, string grainClassNamePrefix = null)
+            where TGrainInterface : IGrainWithGuidKey
         {
             Type interfaceType = typeof(TGrainInterface);
             var implementation = this.GetGrainClassData(interfaceType, grainClassNamePrefix);
@@ -66,7 +77,8 @@ namespace Orleans
         }
 
         /// <inheritdoc />
-        public TGrainInterface GetGrain<TGrainInterface>(long primaryKey, string grainClassNamePrefix = null) where TGrainInterface : IGrainWithIntegerKey
+        public TGrainInterface GetGrain<TGrainInterface>(long primaryKey, string grainClassNamePrefix = null)
+            where TGrainInterface : IGrainWithIntegerKey
         {
             Type interfaceType = typeof(TGrainInterface);
             var implementation = this.GetGrainClassData(interfaceType, grainClassNamePrefix);

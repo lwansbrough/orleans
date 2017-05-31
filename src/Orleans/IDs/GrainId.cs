@@ -61,6 +61,18 @@ namespace Orleans.Runtime
             return FindOrCreateGrainId(UniqueKey.NewKey(guid, UniqueKey.Category.None));
         }
 
+        // For testing only.
+        internal static GrainId GetGrainIdForTesting(byte[] bytes)
+        {
+            return FindOrCreateGrainId(UniqueKey.NewKey(bytes, UniqueKey.Category.None));
+        }
+
+        // For testing only.
+        internal static GrainId GetGrainIdForTesting(long id)
+        {
+            return FindOrCreateGrainId(UniqueKey.NewKey(id, UniqueKey.Category.None));
+        }
+
         internal static GrainId NewSystemTargetGrainIdByTypeCode(int typeData)
         {
             return FindOrCreateGrainId(UniqueKey.NewSystemTargetKey(Guid.NewGuid(), typeData));
@@ -83,6 +95,11 @@ namespace Orleans.Runtime
             return FindOrCreateGrainId(UniqueKey.NewKey(primaryKey, 
                 keyExt == null ? UniqueKey.Category.Grain : UniqueKey.Category.KeyExtGrain, 
                 typeCode, keyExt));
+        }
+
+        internal static GrainId GetGrainId(long typeCode, byte[] primaryKey)
+        {
+            return FindOrCreateGrainId(UniqueKey.NewKey(primaryKey, UniqueKey.Category.Grain, typeCode));
         }
 
         internal static GrainId GetGrainId(long typeCode, string primaryKey)

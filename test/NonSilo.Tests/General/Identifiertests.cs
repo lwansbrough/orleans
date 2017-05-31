@@ -127,6 +127,13 @@ namespace UnitTests.General
             string str5 = expected5.ToHexString();
             UniqueKey actual5 = UniqueKey.Parse(str5);
             Assert.Equal(expected5, actual5); // UniqueKey.ToString() and UniqueKey.Parse() failed to reproduce an identical object (case 5).
+
+            byte[] pkBytes = new byte[24];
+            random.NextBytes(pkBytes);
+            UniqueKey expected6 = UniqueKey.NewKey(pkBytes, category: UniqueKey.Category.Grain);
+            string str6 = expected6.ToHexString();
+            UniqueKey actual6 = UniqueKey.Parse(str6);
+            Assert.Equal(expected6, actual6); // UniqueKey.ToString() and UniqueKey.Parse() failed to reproduce an identical object (case 6).
         }
 
 
@@ -139,6 +146,48 @@ namespace UnitTests.General
                 Guid expected = Guid.NewGuid();
                 GrainId grainId = GrainId.GetGrainIdForTesting(expected);
                 Guid actual = grainId.Key.PrimaryKeyToGuid();
+                Assert.Equal(expected, actual); // Failed to encode and decode grain id
+            }
+        }
+
+        [Fact, TestCategory("BVT"), TestCategory("Functional"), TestCategory("Identifiers")]
+        public void GrainIdShouldEncodeAndDecodePrimaryKeyBytesCorrectly()
+        {
+            const int repeat = 100;
+            for (int i = 0; i < repeat; ++i)
+            {
+                byte[] expected = new byte[24];
+                random.NextBytes(expected);
+                GrainId grainId = GrainId.GetGrainIdForTesting(expected);
+                byte[] actual = grainId.Key.KeyBytes;
+                Assert.Equal(expected, actual); // Failed to encode and decode grain id
+            }
+        }
+
+        [Fact, TestCategory("BVT"), TestCategory("Functional"), TestCategory("Identifiers")]
+        public void GrainIdShouldEncodeAndDecodePrimaryKeyGuidBytesCorrectly()
+        {
+            const int repeat = 100;
+            for (int i = 0; i < repeat; ++i)
+            {
+                Guid id = Guid.NewGuid();
+                byte[] expected = id.ToByteArray();
+                GrainId grainId = GrainId.GetGrainIdForTesting(id);
+                byte[] actual = grainId.Key.KeyBytes;
+                Assert.Equal(expected, actual); // Failed to encode and decode grain id
+            }
+        }
+
+        [Fact, TestCategory("BVT"), TestCategory("Functional"), TestCategory("Identifiers")]
+        public void GrainIdShouldEncodeAndDecodePrimaryKeyLongBytesCorrectly()
+        {
+            const int repeat = 100;
+            for (int i = 0; i < repeat; ++i)
+            {
+                long id = random.Next();
+                byte[] expected = BitConverter.GetBytes(id);
+                GrainId grainId = GrainId.GetGrainIdForTesting(id);
+                byte[] actual = grainId.Key.KeyBytes;
                 Assert.Equal(expected, actual); // Failed to encode and decode grain id
             }
         }
