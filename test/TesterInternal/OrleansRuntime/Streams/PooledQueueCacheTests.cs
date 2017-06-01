@@ -37,6 +37,7 @@ namespace UnitTests.OrleansRuntime.Streams
 
         private class TestBatchContainer : IBatchContainer
         {
+            public byte[] StreamKey { get { return StreamGuid.ToByteArray();  } }
             public Guid StreamGuid { get; set; }
             public string StreamNamespace { get; set; }
             public StreamSequenceToken SequenceToken { get; set; }
@@ -72,7 +73,7 @@ namespace UnitTests.OrleansRuntime.Streams
 
             public bool Equals(TestCachedMessage cachedMessage, IStreamIdentity streamIdentity)
             {
-                int results = cachedMessage.StreamGuid.CompareTo(streamIdentity.Guid);
+                int results = cachedMessage.StreamGuid.CompareTo(new Guid(streamIdentity.Key));
                 return results == 0 && string.Compare(cachedMessage.StreamNamespace, streamIdentity.Namespace, StringComparison.Ordinal)==0;
             }
         }
@@ -161,7 +162,7 @@ namespace UnitTests.OrleansRuntime.Streams
             public StreamPosition QueueMessageToCachedMessage(ref TestCachedMessage cachedMessage, TestQueueMessage queueMessage, DateTime dequeueTimeUtc)
             {
                 StreamPosition streamPosition = GetStreamPosition(queueMessage);
-                cachedMessage.StreamGuid = streamPosition.StreamIdentity.Guid;
+                cachedMessage.StreamGuid = new Guid(streamPosition.StreamIdentity.Key);
                 cachedMessage.StreamNamespace = streamPosition.StreamIdentity.Namespace;
                 cachedMessage.SequenceNumber = queueMessage.SequenceNumber;
                 cachedMessage.Payload = SerializeMessageIntoPooledSegment(queueMessage);
@@ -284,7 +285,7 @@ namespace UnitTests.OrleansRuntime.Streams
             {
                 cache.Add(new TestQueueMessage
                 {
-                    StreamGuid = i % 2 == 0 ? stream1.Guid : stream2.Guid,
+                    StreamGuid = new Guid(i % 2 == 0 ? stream1.Key : stream2.Key),
                     StreamNamespace = TestStreamNamespace,
                     SequenceNumber = sequenceNumber++,
                 }, DateTime.UtcNow);
@@ -297,7 +298,7 @@ namespace UnitTests.OrleansRuntime.Streams
             {
                 Assert.NotNull(stream1Cursor);
                 Assert.NotNull(batch);
-                Assert.Equal(stream1.Guid, batch.StreamGuid);
+                Assert.Equal(stream1.Key, batch.StreamKey);
                 Assert.Equal(TestStreamNamespace, batch.StreamNamespace);
                 Assert.NotNull(batch.SequenceToken);
                 stream1EventCount++;
@@ -311,7 +312,7 @@ namespace UnitTests.OrleansRuntime.Streams
             {
                 Assert.NotNull(stream2Cursor);
                 Assert.NotNull(batch);
-                Assert.Equal(stream2.Guid, batch.StreamGuid);
+                Assert.Equal(stream2.Key, batch.StreamKey);
                 Assert.Equal(TestStreamNamespace, batch.StreamNamespace);
                 Assert.NotNull(batch.SequenceToken);
                 stream2EventCount++;
@@ -325,7 +326,7 @@ namespace UnitTests.OrleansRuntime.Streams
                 {
                     cache.Add(new TestQueueMessage
                     {
-                        StreamGuid = i % 2 == 0 ? stream1.Guid : stream2.Guid,
+                        StreamGuid = new Guid(i % 2 == 0 ? stream1.Key : stream2.Key),
                         StreamNamespace = TestStreamNamespace,
                         SequenceNumber = sequenceNumber++,
                     }, DateTime.UtcNow);
@@ -336,7 +337,7 @@ namespace UnitTests.OrleansRuntime.Streams
                 {
                     Assert.NotNull(stream1Cursor);
                     Assert.NotNull(batch);
-                    Assert.Equal(stream1.Guid, batch.StreamGuid);
+                    Assert.Equal(stream1.Key, batch.StreamKey);
                     Assert.Equal(TestStreamNamespace, batch.StreamNamespace);
                     Assert.NotNull(batch.SequenceToken);
                     stream1EventCount++;
@@ -348,7 +349,7 @@ namespace UnitTests.OrleansRuntime.Streams
                 {
                     Assert.NotNull(stream2Cursor);
                     Assert.NotNull(batch);
-                    Assert.Equal(stream2.Guid, batch.StreamGuid);
+                    Assert.Equal(stream2.Key, batch.StreamKey);
                     Assert.Equal(TestStreamNamespace, batch.StreamNamespace);
                     Assert.NotNull(batch.SequenceToken);
                     stream2EventCount++;
@@ -388,7 +389,7 @@ namespace UnitTests.OrleansRuntime.Streams
             {
                 cache.Add(new TestQueueMessage
                 {
-                    StreamGuid = streamId.Guid,
+                    StreamGuid = new Guid(streamId.Key),
                     StreamNamespace = TestStreamNamespace,
                     SequenceNumber = sequenceNumber++,
                 }, DateTime.UtcNow);
@@ -427,7 +428,7 @@ namespace UnitTests.OrleansRuntime.Streams
             // Since pool should be full, adding one more message should trigger the cache to purge.  
             cache.Add(new TestQueueMessage
             {
-                StreamGuid = streamId.Guid,
+                StreamGuid = new Guid(streamId.Key),
                 StreamNamespace = TestStreamNamespace,
                 SequenceNumber = sequenceNumber,
             }, DateTime.UtcNow);

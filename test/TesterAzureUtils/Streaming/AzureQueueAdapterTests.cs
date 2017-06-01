@@ -99,14 +99,14 @@ namespace Tester.AzureUtils.Streaming
                         foreach (IBatchContainer message in messages)
                         {
                             streamsPerQueue.AddOrUpdate(queueId,
-                                id => new HashSet<IStreamIdentity> { new StreamIdentity(message.StreamGuid, message.StreamGuid.ToString()) },
+                                id => new HashSet<IStreamIdentity> { new StreamIdentity(message.StreamKey, new Guid(message.StreamKey).ToString()) },
                                 (id, set) =>
                                 {
-                                    set.Add(new StreamIdentity(message.StreamGuid, message.StreamGuid.ToString()));
+                                    set.Add(new StreamIdentity(message.StreamKey, new Guid(message.StreamKey).ToString()));
                                     return set;
                                 });
                             output.WriteLine("Queue {0} received message on stream {1}", queueId,
-                                message.StreamGuid);
+                                new Guid(message.StreamKey));
                             Assert.Equal(NumMessagesPerBatch / 2, message.GetEvents<int>().Count());  // "Half the events were ints"
                             Assert.Equal(NumMessagesPerBatch / 2, message.GetEvents<string>().Count());  // "Half the events were strings"
                         }
@@ -123,7 +123,7 @@ namespace Tester.AzureUtils.Streaming
                 .Select(i => i % 2 == 0 ? streamId1 : streamId2)
                 .ToList()
                 .ForEach(streamId =>
-                    adapter.QueueMessageBatchAsync(streamId, streamId.ToString(),
+                    adapter.QueueMessageBatchAsync(streamId.ToByteArray(), streamId.ToString(),
                         events.Take(NumMessagesPerBatch).ToArray(), null, RequestContext.Export(this.fixture.SerializationManager)).Wait())));
             await Task.WhenAll(work);
 

@@ -21,6 +21,12 @@ namespace Tester.TestStreamProviders.Controllable
         {
             public string Name { get; private set; }
 
+            public Task QueueMessageBatchAsync<T>(byte[] streamKey, string streamNamespace, IEnumerable<T> events, StreamSequenceToken token,
+                Dictionary<string, object> requestContext)
+            {
+                return Task.CompletedTask;
+            }
+
             public Task QueueMessageBatchAsync<T>(Guid streamGuid, string streamNamespace, IEnumerable<T> events, StreamSequenceToken token,
                 Dictionary<string, object> requestContext)
             {

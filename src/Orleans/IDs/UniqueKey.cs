@@ -258,7 +258,7 @@ namespace Orleans.Runtime
         public long PrimaryKeyToLong(out string extendedKey)
         {
             ThrowIfIsNotLong();
-            ThrowIfKeyBytesTooLong("UniqueKey.PrimaryKeyToLong", 8);
+            ThrowIfKeyBytesTooLong("UniqueKey.PrimaryKeyToLong", 16);
 
             extendedKey = this.KeyExt;
             return unchecked((long)N1);

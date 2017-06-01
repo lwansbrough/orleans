@@ -74,6 +74,13 @@ namespace UnitTests.Grains.ProgrammaticSubscribe
     [Serializable]
     public class FullStreamIdentity : IStreamIdentity
     {
+        public FullStreamIdentity(byte[] streamKey, string streamNamespace, string providerName)
+        {
+            Key = streamKey;
+            Namespace = streamNamespace;
+            this.ProviderName = providerName;
+        }
+
         public FullStreamIdentity(Guid streamGuid, string streamNamespace, string providerName)
         {
             Guid = streamGuid;
@@ -86,6 +93,11 @@ namespace UnitTests.Grains.ProgrammaticSubscribe
         /// Stream primary key guid.
         /// </summary>
         public Guid Guid { get; }
+
+        /// <summary>
+        /// Stream primary key guid.
+        /// </summary>
+        public byte[] Key { get; }
 
         /// <summary>
         /// Stream namespace.

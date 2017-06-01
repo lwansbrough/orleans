@@ -27,6 +27,11 @@ namespace Tester.TestStreamProviders
 
         public string Name { get; set; }
 
+        public IAsyncStream<T> GetStream<T>(byte[] streamId, string streamNamespace)
+        {
+            throw new NotImplementedException();
+        }
+
         public IAsyncStream<T> GetStream<T>(Guid streamId, string streamNamespace)
         {
             throw new NotImplementedException();

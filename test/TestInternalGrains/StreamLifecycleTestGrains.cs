@@ -118,7 +118,7 @@ namespace UnitTests.Grains
             if (streamNamespace == null) throw new ArgumentNullException("streamNamespace", "Can't have null stream namespace values");
             if (providerToUse == null) throw new ArgumentNullException("providerToUse", "Can't have null stream provider name");
 
-            if (State.Stream != null && State.Stream.Guid != streamId)
+            if (State.Stream != null && new Guid(State.Stream.Key) != streamId)
             {
                 if (logger.IsVerbose) logger.Verbose("Stream already exists for StreamId={0} StreamProvider={1} - Resetting", State.Stream, providerToUse);
 
@@ -243,7 +243,7 @@ namespace UnitTests.Grains
             myExtensionReference = tup.Item2;
 #endif
             string extKey = providerName + "_" + State.Stream.Namespace;
-            IPubSubRendezvousGrain pubsub = GrainFactory.GetGrain<IPubSubRendezvousGrain>(streamIdGuid, extKey, null);
+            IPubSubRendezvousGrain pubsub = GrainFactory.GetGrain<IPubSubRendezvousGrain>(streamIdGuid.ToByteArray(), extKey, null);
             GuidId subscriptionId = GuidId.GetNewGuidId();
             await pubsub.RegisterConsumer(subscriptionId, ((StreamImpl<int>)State.Stream).StreamId, myExtensionReference, null);
 

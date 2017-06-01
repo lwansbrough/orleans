@@ -27,6 +27,7 @@ namespace UnitTests.OrleansRuntime.Streams
 
         private class TestBatchContainer : IBatchContainer
         {
+            public byte[] StreamKey { get { return StreamGuid.ToByteArray(); } }
             public Guid StreamGuid { get; set; }
             public string StreamNamespace => null;
             public StreamSequenceToken SequenceToken { get; set; }
@@ -59,7 +60,7 @@ namespace UnitTests.OrleansRuntime.Streams
 
             public bool Equals(TestCachedMessage cachedMessage, IStreamIdentity streamIdentity)
             {
-                return cachedMessage.StreamGuid.CompareTo(streamIdentity.Guid)==0;
+                return cachedMessage.StreamGuid.CompareTo(new Guid(streamIdentity.Key))==0;
             }
         }
 
@@ -70,7 +71,7 @@ namespace UnitTests.OrleansRuntime.Streams
             public StreamPosition QueueMessageToCachedMessage(ref TestCachedMessage cachedMessage, TestQueueMessage queueMessage, DateTime dequeueTimeUtc)
             {
                 StreamPosition streamPosition = GetStreamPosition(queueMessage);
-                cachedMessage.StreamGuid = streamPosition.StreamIdentity.Guid;
+                cachedMessage.StreamGuid = new Guid(streamPosition.StreamIdentity.Key);
                 cachedMessage.SequenceNumber = queueMessage.SequenceToken.SequenceNumber;
                 cachedMessage.EventIndex = queueMessage.SequenceToken.EventIndex;
                 return streamPosition;
@@ -193,7 +194,7 @@ namespace UnitTests.OrleansRuntime.Streams
                 var stream = streams[last%2];
                 var message = new TestQueueMessage
                 {
-                    StreamGuid = stream.Guid,
+                    StreamGuid = new Guid(stream.Key),
                     SequenceToken = new EventSequenceTokenV2(sequenceNumber)
                 };
 

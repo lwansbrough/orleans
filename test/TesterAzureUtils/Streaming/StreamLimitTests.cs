@@ -528,7 +528,7 @@ namespace UnitTests.StreamingTests
                 Guid streamId = streamIds[i];
                 string extKey = streamProviderName + "_" + this.StreamNamespace;
 
-                IPubSubRendezvousGrain pubsub = this.GrainFactory.GetGrain<IPubSubRendezvousGrain>(streamId, extKey, null);
+                IPubSubRendezvousGrain pubsub = this.GrainFactory.GetGrain<IPubSubRendezvousGrain>(streamId.ToByteArray(), extKey, null);
 
                 Task promise = pubsub.Validate();
 

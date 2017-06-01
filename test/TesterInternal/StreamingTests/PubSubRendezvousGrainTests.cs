@@ -36,7 +36,7 @@ namespace UnitTests.StreamingTests
             this.fixture.Logger.Info("************************ RegisterConsumerFaultTest *********************************");
             var streamId = StreamId.GetStreamId(Guid.NewGuid(), "ProviderName", "StreamNamespace");
             var pubSubGrain = this.fixture.GrainFactory.GetGrain<IPubSubRendezvousGrain>(
-                streamId.Guid,
+                streamId.Key,
                 keyExtension: streamId.ProviderName + "_" + streamId.Namespace);
             var faultGrain = this.fixture.GrainFactory.GetGrain<IStorageFaultGrain>(typeof(PubSubRendezvousGrain).FullName);
 
@@ -64,7 +64,7 @@ namespace UnitTests.StreamingTests
             this.fixture.Logger.Info("************************ UnregisterConsumerFaultTest *********************************");
             var streamId = StreamId.GetStreamId(Guid.NewGuid(), "ProviderName", "StreamNamespace");
             var pubSubGrain = this.fixture.GrainFactory.GetGrain<IPubSubRendezvousGrain>(
-                streamId.Guid,
+                streamId.Key,
                 keyExtension: streamId.ProviderName + "_" + streamId.Namespace);
             var faultGrain = this.fixture.GrainFactory.GetGrain<IStorageFaultGrain>(typeof(PubSubRendezvousGrain).FullName);
 
@@ -112,7 +112,7 @@ namespace UnitTests.StreamingTests
             this.fixture.Logger.Info("************************ RegisterProducerFaultTest *********************************");
             var streamId = StreamId.GetStreamId(Guid.NewGuid(), "ProviderName", "StreamNamespace");
             var pubSubGrain = this.fixture.GrainFactory.GetGrain<IPubSubRendezvousGrain>(
-                streamId.Guid,
+                streamId.Key,
                 keyExtension: streamId.ProviderName + "_" + streamId.Namespace);
             var faultGrain = this.fixture.GrainFactory.GetGrain<IStorageFaultGrain>(typeof(PubSubRendezvousGrain).FullName);
 
@@ -144,7 +144,7 @@ namespace UnitTests.StreamingTests
             this.fixture.Logger.Info("************************ UnregisterProducerFaultTest *********************************");
             var streamId = StreamId.GetStreamId(Guid.NewGuid(), "ProviderName", "StreamNamespace");
             var pubSubGrain = this.fixture.GrainFactory.GetGrain<IPubSubRendezvousGrain>(
-                streamId.Guid,
+                streamId.Key,
                 keyExtension: streamId.ProviderName + "_" + streamId.Namespace);
             var faultGrain = this.fixture.GrainFactory.GetGrain<IStorageFaultGrain>(typeof(PubSubRendezvousGrain).FullName);
 

@@ -77,7 +77,7 @@ namespace UnitTests.Grains
             myExtensionReference = tup.Item2;
 #endif
             string extKey = providerName + "_" + State.Stream.Namespace;
-            IPubSubRendezvousGrain pubsub = GrainFactory.GetGrain<IPubSubRendezvousGrain>(streamIdGuid, extKey, null);
+            IPubSubRendezvousGrain pubsub = GrainFactory.GetGrain<IPubSubRendezvousGrain>(streamIdGuid.ToByteArray(), extKey, null);
             GuidId subscriptionId = GuidId.GetNewGuidId();
             await pubsub.RegisterConsumer(subscriptionId, ((StreamImpl<int>)State.Stream).StreamId, myExtensionReference, null);
 
