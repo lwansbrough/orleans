@@ -69,6 +69,12 @@ namespace Orleans.Runtime
             return CalculateResponsible(element.GetUniformHashCode());     
         }
 
+        public T CalculateResponsible(byte[] id)
+        {
+            uint uniformHashCode = JenkinsHash.ComputeHash(id);
+            return CalculateResponsible(uniformHashCode);
+        }
+
         public T CalculateResponsible(Guid guid)
         {
             byte[] guidBytes = guid.ToByteArray();

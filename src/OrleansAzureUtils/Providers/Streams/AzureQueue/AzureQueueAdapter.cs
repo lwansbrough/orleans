@@ -51,10 +51,10 @@ namespace Orleans.Providers.Streams.AzureQueue
             return AzureQueueAdapterReceiver.Create(this.serializationManager, queueId, DataConnectionString, DeploymentId, this.dataAdapter, MessageVisibilityTimeout);
         }
 
-        public async Task QueueMessageBatchAsync<T>(Guid streamGuid, string streamNamespace, IEnumerable<T> events, StreamSequenceToken token, Dictionary<string, object> requestContext)
+        public async Task QueueMessageBatchAsync<T>(byte[] streamKey, string streamNamespace, IEnumerable<T> events, StreamSequenceToken token, Dictionary<string, object> requestContext)
         {
-            if(token != null) throw new ArgumentException("AzureQueue stream provider currently does not support non-null StreamSequenceToken.", nameof(token));
-            var queueId = streamQueueMapper.GetQueueForStream(streamGuid, streamNamespace);
+            if (token != null) throw new ArgumentException("AzureQueue stream provider currently does not support non-null StreamSequenceToken.", nameof(token));
+            var queueId = streamQueueMapper.GetQueueForStream(streamKey, streamNamespace);
             AzureQueueDataManager queue;
             if (!Queues.TryGetValue(queueId, out queue))
             {
@@ -62,7 +62,7 @@ namespace Orleans.Providers.Streams.AzureQueue
                 await tmpQueue.InitQueueAsync();
                 queue = Queues.GetOrAdd(queueId, tmpQueue);
             }
-            var cloudMsg = this.dataAdapter.ToCloudQueueMessage(streamGuid, streamNamespace, events, requestContext);
+            var cloudMsg = this.dataAdapter.ToCloudQueueMessage(streamKey, streamNamespace, events, requestContext);
             await queue.AddQueueMessage(cloudMsg);
         }
     }

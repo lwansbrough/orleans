@@ -117,7 +117,7 @@ namespace Orleans.ServiceBus.Providers.Testing
                     if (this.EventHubReceivers.TryGetValue(queueToAssign, out receiverToAssign))
                     {
                         receiverToAssign.ConfigureDataGeneratorForStream(streamId);
-                        logger.Info($"Stream {streamId.Namespace}-{streamId.Guid.ToString()} is assigned to queue {queueToAssign.ToString()}");
+                        logger.Info($"Stream {streamId.Namespace}-{BitConverter.ToString(streamId.Key)} is assigned to queue {queueToAssign.ToString()}");
                     }
                 } else
                 {

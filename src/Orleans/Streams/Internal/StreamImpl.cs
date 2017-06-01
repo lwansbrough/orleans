@@ -29,7 +29,7 @@ namespace Orleans.Streams
         internal StreamId StreamId                              { get { return streamId; } }
 
         public bool IsRewindable                                { get { return isRewindable; } }
-        public Guid Guid                                        { get { return streamId.Guid; } }
+        public byte[] Key                                        { get { return streamId.Key; } }
         public string Namespace                                 { get { return streamId.Namespace; } }
         public string ProviderName                              { get { return streamId.ProviderName; } }
 

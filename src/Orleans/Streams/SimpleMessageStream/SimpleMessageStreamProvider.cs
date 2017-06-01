@@ -81,7 +81,9 @@ namespace Orleans.Providers.Streams.SimpleMessageStream
 
         public IAsyncStream<T> GetStream<T>(Guid id, string streamNamespace)
         {
-            return GetStream<T>(id.ToByteArray(), streamNamespace);
+            var streamId = StreamId.GetStreamId(id, Name, streamNamespace);
+            return providerRuntime.GetStreamDirectory().GetOrAddStream<T>(
+                streamId, () => new StreamImpl<T>(streamId, this, IsRewindable, this.runtimeClient));
         }
 
         IInternalAsyncBatchObserver<T> IInternalStreamProvider.GetProducerInterface<T>(IAsyncStream<T> stream)

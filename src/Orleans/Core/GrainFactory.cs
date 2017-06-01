@@ -58,7 +58,7 @@ namespace Orleans
 
         /// <inheritdoc />
         public TGrainInterface GetGrain<TGrainInterface>(byte[] primaryKey, string grainClassNamePrefix = null)
-            where TGrainInterface : IGrainWithIntegerCompoundKey
+            where TGrainInterface : IGrainWithBinaryKey
         {
             Type interfaceType = typeof(TGrainInterface);
             var implementation = this.GetGrainClassData(interfaceType, grainClassNamePrefix);
@@ -96,6 +96,17 @@ namespace Orleans
             return this.Cast<TGrainInterface>(this.MakeGrainReferenceFromType(interfaceType, grainId));
         }
 
+        /// <inheritdoc />
+        public TGrainInterface GetGrain<TGrainInterface>(byte[] primaryKey, string keyExtension, string grainClassNamePrefix = null)
+            where TGrainInterface : IGrainWithBinaryCompoundKey
+        {
+            GrainFactoryBase.DisallowNullOrWhiteSpaceKeyExtensions(keyExtension);
+
+            Type interfaceType = typeof(TGrainInterface);
+            var implementation = this.GetGrainClassData(interfaceType, grainClassNamePrefix);
+            var grainId = GrainId.GetGrainId(implementation.GetTypeCode(interfaceType), primaryKey, keyExtension);
+            return this.Cast<TGrainInterface>(this.MakeGrainReferenceFromType(interfaceType, grainId));
+        }
 
         /// <inheritdoc />
         public TGrainInterface GetGrain<TGrainInterface>(Guid primaryKey, string keyExtension, string grainClassNamePrefix = null)

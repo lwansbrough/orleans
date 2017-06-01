@@ -30,7 +30,7 @@ namespace OrleansAWSUtils.Streams
         // Don't need to serialize it, since we are never interested in sending it to stream consumers.
         internal SQSMessage Message;
         
-        public Guid StreamGuid { get; private set; }
+        public byte[] StreamKey { get; private set; }
 
         public string StreamNamespace { get; private set; }
 
@@ -41,21 +41,21 @@ namespace OrleansAWSUtils.Streams
 
         [JsonConstructor]
         private SQSBatchContainer(
-            Guid streamGuid,
+            byte[] streamKey,
             String streamNamespace,
             List<object> events,
             Dictionary<string, object> requestContext,
             EventSequenceTokenV2 sequenceToken)
-            : this(streamGuid, streamNamespace, events, requestContext)
+            : this(streamKey, streamNamespace, events, requestContext)
         {
             this.sequenceToken = sequenceToken;
         }
 
-        private SQSBatchContainer(Guid streamGuid, String streamNamespace, List<object> events, Dictionary<string, object> requestContext)
+        private SQSBatchContainer(byte[] streamKey, String streamNamespace, List<object> events, Dictionary<string, object> requestContext)
         {
             if (events == null) throw new ArgumentNullException("events", "Message contains no events");
 
-            StreamGuid = streamGuid;
+            StreamKey = streamKey;
             StreamNamespace = streamNamespace;
             this.events = events;
             this.requestContext = requestContext;
@@ -78,12 +78,12 @@ namespace OrleansAWSUtils.Streams
 
         internal static SendMessageRequest ToSQSMessage<T>(
             SerializationManager serializationManager,
-            Guid streamGuid,
+            byte[] streamKey,
             string streamNamespace,
             IEnumerable<T> events,
             Dictionary<string, object> requestContext)
         {
-            var sqsBatchMessage = new SQSBatchContainer(streamGuid, streamNamespace, events.Cast<object>().ToList(), requestContext);
+            var sqsBatchMessage = new SQSBatchContainer(streamKey, streamNamespace, events.Cast<object>().ToList(), requestContext);
             var rawBytes = serializationManager.SerializeToByteArray(sqsBatchMessage);
             var payload = new JObject();
             payload.Add("payload", JToken.FromObject(rawBytes));
@@ -114,7 +114,7 @@ namespace OrleansAWSUtils.Streams
 
         public override string ToString()
         {
-            return string.Format("[SQSBatchContainer:Stream={0},#Items={1}]", StreamGuid, events.Count);
+            return string.Format("[SQSBatchContainer:Stream={0},#Items={1}]", BitConverter.ToString(StreamKey), events.Count);
         }
     }
 }

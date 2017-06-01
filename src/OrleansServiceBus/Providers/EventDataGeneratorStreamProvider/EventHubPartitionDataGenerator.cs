@@ -61,7 +61,7 @@ namespace Orleans.ServiceBus.Providers.Testing
             while (count-- > 0)
             {
                 this.SequenceNumberCounter.Increment();
-                var eventData = EventHubBatchContainer.ToEventData<int>(this.serializationManager, this.StreamId.Guid, this.StreamId.Namespace,
+                var eventData = EventHubBatchContainer.ToEventData<int>(this.serializationManager, this.StreamId.Key, this.StreamId.Namespace,
                     this.GenerateEvent(this.SequenceNumberCounter.Value), RequestContext.Export(this.serializationManager));
 #if NETSTANDARD
 //set partition key
@@ -69,14 +69,14 @@ namespace Orleans.ServiceBus.Providers.Testing
 #endif
                 //set offset
                 DateTime now = DateTime.UtcNow;
-                var offSet = this.StreamId.Guid.ToString() + now.ToString();
+                var offSet = BitConverter.ToString(this.StreamId.Key) + now.ToString();
                 eventData.SetOffset(offSet);
                 //set sequence number
                 eventData.SetSequenceNumber(this.SequenceNumberCounter.Value);
                 //set enqueue time
                 eventData.SetEnqueuedTimeUtc(now);
                 eventDataList.Add(eventData);
-                this.logger.Info($"Generate data of SequemceNumber {SequenceNumberCounter.Value} for stream {this.StreamId.Namespace}-{this.StreamId.Guid}");
+                this.logger.Info($"Generate data of SequemceNumber {SequenceNumberCounter.Value} for stream {this.StreamId.Namespace}-{BitConverter.ToString(this.StreamId.Key)}");
             }
 
             events = eventDataList;
@@ -121,7 +121,7 @@ namespace Orleans.ServiceBus.Providers.Testing
             var generator = (IStreamDataGenerator<EventData>)Activator.CreateInstance(settings.StreamDataGeneratorType,
                 streamId, settings, this.logger, this.serializationManager);
             generator.SequenceNumberCounter = sequenceNumberCounter;
-            this.logger.Info($"Data generator set up on stream {streamId.Namespace}-{streamId.Guid.ToString()}.");
+            this.logger.Info($"Data generator set up on stream {streamId.Namespace}-{BitConverter.ToString(streamId.Key)}.");
             this.generators.Add(generator);
         }
         /// <inheritdoc cref="IStreamDataGeneratingController"/>>
@@ -131,7 +131,7 @@ namespace Orleans.ServiceBus.Providers.Testing
                 if (generator.StreamId.Equals(streamId))
                 {
                     generator.ShouldProduce = false;
-                    this.logger.Info($"Stop producing data on stream {streamId.Namespace}-{streamId.Guid.ToString()}.");
+                    this.logger.Info($"Stop producing data on stream {streamId.Namespace}-{BitConverter.ToString(streamId.Key)}.");
                 }
             });
         }

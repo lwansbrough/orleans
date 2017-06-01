@@ -11,7 +11,7 @@ namespace Orleans.Streams
         /// <summary>
         /// Stream identifier for the stream this batch is part of.
         /// </summary>
-        Guid StreamGuid { get; }
+        byte[] StreamKey { get; }
 
         /// <summary>
         /// Stream namespace for the stream this batch is part of.

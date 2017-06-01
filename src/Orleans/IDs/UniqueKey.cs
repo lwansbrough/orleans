@@ -175,7 +175,7 @@ namespace Orleans.Runtime
             return NewKey(n0, n1, guidBytes, category, typeData, keyExt);
         }
 
-        internal static UniqueKey NewKey(byte[] bytes, Category category = Category.None, long typeData = 0)
+        internal static UniqueKey NewKey(byte[] bytes, Category category = Category.None, long typeData = 0, string keyExt = null)
         {
             ThrowIfIsSystemTargetKey(category);
 
@@ -184,7 +184,7 @@ namespace Orleans.Runtime
             var n0 = BitConverter.ToUInt64(nBytes, 0);
             var n1 = BitConverter.ToUInt64(nBytes, 8);
 
-            return NewKey(n0, n1, bytes, category, typeData, null);
+            return NewKey(n0, n1, bytes, category, typeData, keyExt);
         }
 
         public static UniqueKey NewSystemTargetKey(Guid guid, long typeData)

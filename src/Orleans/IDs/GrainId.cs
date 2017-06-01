@@ -97,9 +97,11 @@ namespace Orleans.Runtime
                 typeCode, keyExt));
         }
 
-        internal static GrainId GetGrainId(long typeCode, byte[] primaryKey)
+        internal static GrainId GetGrainId(long typeCode, byte[] primaryKey, string keyExt=null)
         {
-            return FindOrCreateGrainId(UniqueKey.NewKey(primaryKey, UniqueKey.Category.Grain, typeCode));
+            return FindOrCreateGrainId(UniqueKey.NewKey(primaryKey,
+                keyExt == null ? UniqueKey.Category.Grain : UniqueKey.Category.KeyExtGrain,
+                typeCode, keyExt));
         }
 
         internal static GrainId GetGrainId(long typeCode, string primaryKey)

@@ -8,18 +8,23 @@ namespace Orleans.Providers.Streams.Generator
 {
     internal class GeneratedBatchContainer : IBatchContainer
     {
-        public Guid StreamGuid { get; }
+        public byte[] StreamKey { get; }
         public string StreamNamespace { get; }
         public StreamSequenceToken SequenceToken => RealToken;
         public EventSequenceTokenV2 RealToken { get;  }
         public object Payload { get; }
 
-        public GeneratedBatchContainer(Guid streamGuid, string streamNamespace, object payload, EventSequenceTokenV2 token)
+        public GeneratedBatchContainer(byte[] streamKey, string streamNamespace, object payload, EventSequenceTokenV2 token)
         {
-            StreamGuid = streamGuid;
+            StreamKey = streamKey;
             StreamNamespace = streamNamespace;
             this.Payload = payload;
             this.RealToken = token;
+        }
+
+        public GeneratedBatchContainer(Guid streamGuid, string streamNamespace, object payload, EventSequenceTokenV2 token)
+            : this(streamGuid.ToByteArray(), streamNamespace, payload, token)
+        {
         }
 
         public IEnumerable<Tuple<T, StreamSequenceToken>> GetEvents<T>()

@@ -90,7 +90,7 @@ namespace Orleans.Streams
 
         public Task OnSubscribed(StreamId streamId, GuidId subscriptionId, IStreamProvider streamProvider)
         {
-            var stream = streamProvider.GetStream<T>(streamId.Guid, streamId.Namespace) as StreamImpl<T>;
+            var stream = streamProvider.GetStream<T>(streamId.Key, streamId.Namespace) as StreamImpl<T>;
             var handle = new StreamSubscriptionHandleImpl<T>(subscriptionId, stream);
             return this.OnSubscribed(handle);
         }

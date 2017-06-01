@@ -34,7 +34,7 @@ namespace Orleans.ServiceBus.Providers
         /// <summary>
         /// Stream identifier for the stream this batch is part of.
         /// </summary>
-        public Guid StreamGuid => eventHubMessage.StreamIdentity.Guid;
+        public byte[] StreamKey => eventHubMessage.StreamIdentity.Key;
 
         /// <summary>
         /// Stream namespace for the stream this batch is part of.
@@ -109,12 +109,12 @@ namespace Orleans.ServiceBus.Providers
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="serializationManager"></param>
-        /// <param name="streamGuid"></param>
+        /// <param name="streamKey"></param>
         /// <param name="streamNamespace"></param>
         /// <param name="events"></param>
         /// <param name="requestContext"></param>
         /// <returns></returns>
-        public static EventData ToEventData<T>(SerializationManager serializationManager, Guid streamGuid, String streamNamespace, IEnumerable<T> events, Dictionary<string, object> requestContext)
+        public static EventData ToEventData<T>(SerializationManager serializationManager, byte[] streamKey, String streamNamespace, IEnumerable<T> events, Dictionary<string, object> requestContext)
         {
             var payload = new Body
             {
@@ -125,7 +125,7 @@ namespace Orleans.ServiceBus.Providers
 #if NETSTANDARD
             var eventData = new EventData(bytes);
 #else
-            var eventData = new EventData(bytes) { PartitionKey = streamGuid.ToString() }; 
+            var eventData = new EventData(bytes) { PartitionKey = BitConverter.ToString(streamKey) }; 
 #endif
 
             if (!string.IsNullOrWhiteSpace(streamNamespace))

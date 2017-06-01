@@ -140,6 +140,13 @@ namespace Orleans
         }
 
         /// <inheritdoc />
+        public TGrainInterface GetGrain<TGrainInterface>(byte[] primaryKey, string grainClassNamePrefix = null)
+            where TGrainInterface : IGrainWithBinaryKey
+        {
+            return this.InternalGrainFactory.GetGrain<TGrainInterface>(primaryKey, grainClassNamePrefix);
+        }
+
+        /// <inheritdoc />
         public TGrainInterface GetGrain<TGrainInterface>(Guid primaryKey, string grainClassNamePrefix = null)
             where TGrainInterface : IGrainWithGuidKey
         {
@@ -158,6 +165,13 @@ namespace Orleans
             where TGrainInterface : IGrainWithStringKey
         {
             return this.InternalGrainFactory.GetGrain<TGrainInterface>(primaryKey, grainClassNamePrefix);
+        }
+
+        /// <inheritdoc />
+        public TGrainInterface GetGrain<TGrainInterface>(byte[] primaryKey, string keyExtension, string grainClassNamePrefix = null)
+            where TGrainInterface : IGrainWithBinaryCompoundKey
+        {
+            return this.InternalGrainFactory.GetGrain<TGrainInterface>(primaryKey, keyExtension, grainClassNamePrefix);
         }
 
         /// <inheritdoc />

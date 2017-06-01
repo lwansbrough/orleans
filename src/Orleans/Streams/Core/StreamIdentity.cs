@@ -11,15 +11,20 @@ namespace Orleans.Streams
     public class StreamIdentity : IStreamIdentity
     {
         public StreamIdentity(Guid streamGuid, string streamNamespace)
+            : this(streamGuid.ToByteArray(), streamNamespace)
         {
-            Guid = streamGuid;
+        }
+
+        public StreamIdentity(byte[] key, string streamNamespace)
+        {
+            Key = key;
             Namespace = streamNamespace;
         }
 
         /// <summary>
         /// Stream primary key guid.
         /// </summary>
-        public Guid Guid { get; }
+        public byte[] Key { get; }
 
         /// <summary>
         /// Stream namespace.

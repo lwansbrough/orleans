@@ -92,6 +92,7 @@
     <Compile Include="Core\IInternalClusterClient.cs" />
     <Compile Include="Core\IClusterClient.cs" />
     <Compile Include="Core\ClusterClient.cs" />
+    <Compile Include="IDs\UniqueKey.cs" />
     <Compile Include="LogConsistency\ILogConsistencyDiagnostics.cs" />
     <Compile Include="Logging\LoggerExtensions.cs" />
     <Compile Include="Logging\LoggerImpl.cs" />
@@ -163,7 +164,6 @@
     <Compile Include="Providers\IMemoryStorageGrain.cs" />
     <Compile Include="AssemblyLoader\CachedReflectionOnlyTypeResolver.cs" />
     <Compile Include="Runtime\IActivationData.cs" />
-    <Compile Include="IDs\UniqueKey.cs" />
     <Compile Include="Core\IGrainFactory.cs" />
     <Compile Include="Runtime\IGrainRuntime.cs" />
     <Compile Include="Serialization\ILBasedSerializer.cs" />

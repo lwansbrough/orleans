@@ -110,7 +110,7 @@ namespace Orleans.Providers.Streams.PersistentStreams
             var failureEntity = createEntity();
             failureEntity.SubscriptionId = subscriptionId.Guid;
             failureEntity.StreamProviderName = streamProviderName;
-            failureEntity.StreamGuid = streamIdentity.Guid;
+            failureEntity.StreamKey = streamIdentity.Key;
             failureEntity.StreamNamespace = streamIdentity.Namespace;
             failureEntity.SetSequenceToken(this.serializationManager, sequenceToken);
             failureEntity.SetPartitionKey(deploymentId);

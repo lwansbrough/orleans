@@ -129,6 +129,22 @@ namespace Orleans.Providers.Streams.Generator
         /// Stores a batch of messages
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="streamKey"></param>
+        /// <param name="streamNamespace"></param>
+        /// <param name="events"></param>
+        /// <param name="token"></param>
+        /// <param name="requestContext"></param>
+        /// <returns></returns>
+        public Task QueueMessageBatchAsync<T>(byte[] streamKey, string streamNamespace, IEnumerable<T> events, StreamSequenceToken token,
+            Dictionary<string, object> requestContext)
+        {
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Stores a batch of messages
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="streamGuid"></param>
         /// <param name="streamNamespace"></param>
         /// <param name="events"></param>

@@ -157,6 +157,13 @@ namespace Orleans.Providers.Streams.Common
             stateManager.CommitState();
         }
 
+        public IAsyncStream<T> GetStream<T>(byte[] id, string streamNamespace)
+        {
+            var streamId = StreamId.GetStreamId(id, Name, streamNamespace);
+            return providerRuntime.GetStreamDirectory().GetOrAddStream<T>(
+                streamId, () => new StreamImpl<T>(streamId, this, IsRewindable, this.runtimeClient));
+        }
+
         public IAsyncStream<T> GetStream<T>(Guid id, string streamNamespace)
         {
             var streamId = StreamId.GetStreamId(id, Name, streamNamespace);

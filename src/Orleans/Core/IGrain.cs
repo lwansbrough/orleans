@@ -12,6 +12,13 @@ namespace Orleans
     }
 
     /// <summary>
+    /// Marker interface for grains with byte[] keys.
+    /// </summary>
+    public interface IGrainWithBinaryKey : IGrain
+    {
+    }
+
+    /// <summary>
     /// Marker interface for grains with <see cref="Guid"/> keys.
     /// </summary>
     public interface IGrainWithGuidKey : IGrain
@@ -29,6 +36,13 @@ namespace Orleans
     /// Marker interface for grains with <see cref="String"/> keys.
     /// </summary>
     public interface IGrainWithStringKey : IGrain
+    {
+    }
+
+    /// <summary>
+    /// Marker interface for grains with compound keys.
+    /// </summary>
+    public interface IGrainWithBinaryCompoundKey : IGrain
     {
     }
 

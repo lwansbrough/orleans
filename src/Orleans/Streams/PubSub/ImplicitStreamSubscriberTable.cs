@@ -157,7 +157,7 @@ namespace Orleans.Streams
 
             // Tailing 8 bytes of the guid are from the hash of the streamId Guid and a hash of the provider name.
             // get streamId guid hash code
-            uint streamIdGuidHash = JenkinsHash.ComputeHash(streamId.Guid.ToByteArray());
+            uint streamIdGuidHash = JenkinsHash.ComputeHash(streamId.Key);
             // get provider name hash code
             uint providerHash = JenkinsHash.ComputeHash(streamId.ProviderName);
 
@@ -216,7 +216,7 @@ namespace Orleans.Streams
             var keyExtension = grainsWithKeyExtensions.Contains(implTypeCode)
                 ? streamId.Namespace
                 : null;
-            GrainId grainId = GrainId.GetGrainId(implTypeCode, streamId.Guid, keyExtension);
+            GrainId grainId = GrainId.GetGrainId(implTypeCode, streamId.Key, keyExtension);
             return grainFactory.GetGrain<IStreamConsumerExtension>(grainId);
         }
 

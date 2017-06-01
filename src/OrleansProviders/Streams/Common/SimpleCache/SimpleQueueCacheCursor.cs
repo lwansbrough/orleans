@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Orleans.Runtime;
 using Orleans.Streams;
+using System.Linq;
 
 namespace Orleans.Providers.Streams.Common
 {
@@ -53,7 +54,7 @@ namespace Orleans.Providers.Streams.Common
             this.streamIdentity = streamIdentity;
             this.logger = logger;
             current = null;
-            SimpleQueueCache.Log(logger, "SimpleQueueCacheCursor New Cursor for {0}, {1}", streamIdentity.Guid, streamIdentity.Namespace);
+            SimpleQueueCache.Log(logger, "SimpleQueueCacheCursor New Cursor for {0}, {1}", BitConverter.ToString(streamIdentity.Key), streamIdentity.Namespace);
         }
 
         /// <summary>
@@ -121,7 +122,7 @@ namespace Orleans.Providers.Streams.Common
         private bool IsInStream(IBatchContainer batchContainer)
         {
             return batchContainer != null &&
-                    batchContainer.StreamGuid.Equals(streamIdentity.Guid) &&
+                    batchContainer.StreamKey.SequenceEqual(streamIdentity.Key) &&
                     string.Equals(batchContainer.StreamNamespace, streamIdentity.Namespace);
         }
 

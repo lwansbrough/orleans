@@ -46,8 +46,8 @@ namespace Orleans.Providers
 
             public bool Equals(MemoryMessageData cachedMessage, IStreamIdentity streamIdentity)
             {
-                int results = cachedMessage.StreamGuid.CompareTo(streamIdentity.Guid);
-                return results == 0 && cachedMessage.StreamNamespace == streamIdentity.Namespace;
+                return cachedMessage.StreamKey.SequenceEqual(streamIdentity.Key)
+                    && cachedMessage.StreamNamespace == streamIdentity.Namespace;
             }
         }
 
@@ -185,7 +185,7 @@ namespace Orleans.Providers
 
             public StreamPosition GetStreamPosition(MemoryMessageData queueMessage)
             {
-                return new StreamPosition(new StreamIdentity(queueMessage.StreamGuid, queueMessage.StreamNamespace),
+                return new StreamPosition(new StreamIdentity(queueMessage.StreamKey, queueMessage.StreamNamespace),
                     new EventSequenceTokenV2(queueMessage.SequenceNumber));
             }
         }

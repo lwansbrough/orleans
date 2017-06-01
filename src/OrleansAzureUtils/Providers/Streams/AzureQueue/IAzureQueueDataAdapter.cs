@@ -16,7 +16,7 @@ namespace Orleans.Providers.Streams.AzureQueue
         /// <summary>
         /// Creates a cloud queue message from stream event data.
         /// </summary>
-        CloudQueueMessage ToCloudQueueMessage<T>(Guid streamGuid, string streamNamespace, IEnumerable<T> events, Dictionary<string, object> requestContext);
+        CloudQueueMessage ToCloudQueueMessage<T>(byte[] streamKey, string streamNamespace, IEnumerable<T> events, Dictionary<string, object> requestContext);
 
         /// <summary>
         /// Creates a batch container from a cloud queue message
@@ -43,9 +43,9 @@ namespace Orleans.Providers.Streams.AzureQueue
         /// <summary>
         /// Creates a cloud queue message from stream event data.
         /// </summary>
-        public CloudQueueMessage ToCloudQueueMessage<T>(Guid streamGuid, string streamNamespace, IEnumerable<T> events, Dictionary<string, object> requestContext)
+        public CloudQueueMessage ToCloudQueueMessage<T>(byte[] streamKey, string streamNamespace, IEnumerable<T> events, Dictionary<string, object> requestContext)
         {
-            var azureQueueBatchMessage = new AzureQueueBatchContainer(streamGuid, streamNamespace, events.Cast<object>().ToList(), requestContext);
+            var azureQueueBatchMessage = new AzureQueueBatchContainer(streamKey, streamNamespace, events.Cast<object>().ToList(), requestContext);
             var rawBytes = this.serializationManager.SerializeToByteArray(azureQueueBatchMessage);
 
             //new CloudQueueMessage(byte[]) not supported in netstandard, taking a detour to set it
@@ -89,9 +89,9 @@ namespace Orleans.Providers.Streams.AzureQueue
         /// <summary>
         /// Creates a cloud queue message from stream event data.
         /// </summary>
-        public CloudQueueMessage ToCloudQueueMessage<T>(Guid streamGuid, string streamNamespace, IEnumerable<T> events, Dictionary<string, object> requestContext)
+        public CloudQueueMessage ToCloudQueueMessage<T>(byte[] streamKey, string streamNamespace, IEnumerable<T> events, Dictionary<string, object> requestContext)
         {
-            var azureQueueBatchMessage = new AzureQueueBatchContainerV2(streamGuid, streamNamespace, events.Cast<object>().ToList(), requestContext);
+            var azureQueueBatchMessage = new AzureQueueBatchContainerV2(streamKey, streamNamespace, events.Cast<object>().ToList(), requestContext);
             var rawBytes = this.serializationManager.SerializeToByteArray(azureQueueBatchMessage);
 
             //new CloudQueueMessage(byte[]) not supported in netstandard, taking a detour to set it

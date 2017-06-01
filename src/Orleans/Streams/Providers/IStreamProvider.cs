@@ -10,6 +10,7 @@ namespace Orleans.Streams
         /// <summary>Name of the stream provider.</summary>
         string Name { get; }
 
+        IAsyncStream<T> GetStream<T>(byte[] streamId, string streamNamespace);
         IAsyncStream<T> GetStream<T>(Guid streamId, string streamNamespace);
         /// <summary>
         /// Determines whether this is a rewindable provider - supports creating rewindable streams 

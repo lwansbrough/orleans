@@ -179,7 +179,7 @@ namespace Orleans.ServiceBus.Providers
             foreach (EventData message in messages)
             {
                 StreamPosition streamPosition = cache.Add(message, dequeueTimeUtc);
-                batches.Add(new StreamActivityNotificationBatch(streamPosition.StreamIdentity.Guid,
+                batches.Add(new StreamActivityNotificationBatch(streamPosition.StreamIdentity.Key,
                     streamPosition.StreamIdentity.Namespace, streamPosition.SequenceToken));
             }
 
@@ -331,14 +331,14 @@ namespace Orleans.ServiceBus.Providers
 
         private class StreamActivityNotificationBatch : IBatchContainer
         {
-            public Guid StreamGuid { get; }
+            public byte[] StreamKey { get; }
             public string StreamNamespace { get; }
             public StreamSequenceToken SequenceToken { get; }
 
-            public StreamActivityNotificationBatch(Guid streamGuid, string streamNamespace,
+            public StreamActivityNotificationBatch(byte[] streamKey, string streamNamespace,
                 StreamSequenceToken sequenceToken)
             {
-                StreamGuid = streamGuid;
+                StreamKey = streamKey;
                 StreamNamespace = streamNamespace;
                 SequenceToken = sequenceToken;
             }

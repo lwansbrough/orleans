@@ -13,5 +13,6 @@ namespace Orleans.Streams
         IEnumerable<QueueId> GetAllQueues();
 
         QueueId GetQueueForStream(Guid streamGuid, String streamNamespace);
+        QueueId GetQueueForStream(byte[] streamKey, String streamNamespace);
     }
 }

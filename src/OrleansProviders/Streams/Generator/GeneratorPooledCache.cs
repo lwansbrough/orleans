@@ -7,6 +7,7 @@ using Orleans.Runtime;
 using Orleans.Serialization;
 using Orleans.Streams;
 using static System.String;
+using System.Linq;
 
 namespace Orleans.Providers.Streams.Generator
 {
@@ -35,7 +36,7 @@ namespace Orleans.Providers.Streams.Generator
         // For fast GC this struct should contain only value types.  I included streamNamespace because I'm lasy and this is test code, but it should not be in here.
         private struct CachedMessage
         {
-            public Guid StreamGuid;
+            public byte[] StreamKey;
             public string StreamNamespace;
             public long SequenceNumber;
             public ArraySegment<byte> Payload;
@@ -55,8 +56,8 @@ namespace Orleans.Providers.Streams.Generator
 
             public bool Equals(CachedMessage cachedMessage, IStreamIdentity streamIdentity)
             {
-                var results = cachedMessage.StreamGuid.CompareTo(streamIdentity.Guid);
-                return results == 0 && string.Compare(cachedMessage.StreamNamespace, streamIdentity.Namespace, StringComparison.Ordinal)==0;
+                return cachedMessage.StreamKey.SequenceEqual(streamIdentity.Key)
+                    && string.Compare(cachedMessage.StreamNamespace, streamIdentity.Namespace, StringComparison.Ordinal)==0;
             }
         }
 
@@ -146,7 +147,7 @@ namespace Orleans.Providers.Streams.Generator
             public StreamPosition QueueMessageToCachedMessage(ref CachedMessage cachedMessage, GeneratedBatchContainer queueMessage, DateTime dequeueTimeUtc)
             {
                 StreamPosition setreamPosition = GetStreamPosition(queueMessage);
-                cachedMessage.StreamGuid = setreamPosition.StreamIdentity.Guid;
+                cachedMessage.StreamKey = setreamPosition.StreamIdentity.Key;
                 cachedMessage.StreamNamespace = setreamPosition.StreamIdentity.Namespace;
                 cachedMessage.SequenceNumber = queueMessage.RealToken.SequenceNumber;
                 cachedMessage.Payload = SerializeMessageIntoPooledSegment(queueMessage);
@@ -187,7 +188,7 @@ namespace Orleans.Providers.Streams.Generator
                 //Deserialize payload
                 var stream = new BinaryTokenStreamReader(cachedMessage.Payload);
                 object payloadObject = this.serializationManager.Deserialize(stream);
-                return new GeneratedBatchContainer(cachedMessage.StreamGuid, cachedMessage.StreamNamespace,
+                return new GeneratedBatchContainer(cachedMessage.StreamKey, cachedMessage.StreamNamespace,
                     payloadObject, new EventSequenceTokenV2(cachedMessage.SequenceNumber));
             }
 
@@ -198,7 +199,7 @@ namespace Orleans.Providers.Streams.Generator
 
             public StreamPosition GetStreamPosition(GeneratedBatchContainer queueMessage)
             {
-                return new StreamPosition(new StreamIdentity(queueMessage.StreamGuid, queueMessage.StreamNamespace), queueMessage.RealToken);
+                return new StreamPosition(new StreamIdentity(queueMessage.StreamKey, queueMessage.StreamNamespace), queueMessage.RealToken);
             }
         }
 

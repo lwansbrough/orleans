@@ -22,7 +22,7 @@ namespace Orleans.Providers.Streams.AzureQueue
         [JsonProperty]
         private readonly Dictionary<string, object> requestContext;
 
-        public Guid StreamGuid { get; private set; }
+        public byte[] StreamKey { get; private set; }
 
         public String StreamNamespace { get; private set; }
 
@@ -38,21 +38,21 @@ namespace Orleans.Providers.Streams.AzureQueue
 
         [JsonConstructor]
         public AzureQueueBatchContainer(
-            Guid streamGuid,
+            byte[] streamKey,
             String streamNamespace,
             List<object> events,
             Dictionary<string, object> requestContext,
             EventSequenceToken sequenceToken)
-            : this(streamGuid, streamNamespace, events, requestContext)
+            : this(streamKey, streamNamespace, events, requestContext)
         {
             this.sequenceToken = sequenceToken;
         }
 
-        public AzureQueueBatchContainer(Guid streamGuid, String streamNamespace, List<object> events, Dictionary<string, object> requestContext)
+        public AzureQueueBatchContainer(byte[] streamKey, String streamNamespace, List<object> events, Dictionary<string, object> requestContext)
         {
             if (events == null) throw new ArgumentNullException("events", "Message contains no events");
 
-            StreamGuid = streamGuid;
+            StreamKey = streamKey;
             StreamNamespace = streamNamespace;
             this.events = events;
             this.requestContext = requestContext;
@@ -85,7 +85,7 @@ namespace Orleans.Providers.Streams.AzureQueue
 
         public override string ToString()
         {
-            return string.Format("[AzureQueueBatchContainer:Stream={0},#Items={1}]", StreamGuid, events.Count);
+            return string.Format("[AzureQueueBatchContainer:Stream={0},#Items={1}]", BitConverter.ToString(StreamKey), events.Count);
             //return string.Format("[AzureBatch:#Items={0},Items{1}]", events.Count, Utils.EnumerableToString(events.Select((e, i) => String.Format("{0}-{1}", e, sequenceToken.CreateSequenceTokenForEvent(i)))));
         }
     }

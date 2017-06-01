@@ -17,7 +17,7 @@ namespace Orleans.Providers
 
         private readonly EventSequenceToken realToken;
 
-        public Guid StreamGuid => MessageData.StreamGuid;
+        public byte[] StreamKey => MessageData.StreamKey;
         public string StreamNamespace => MessageData.StreamNamespace;
         public StreamSequenceToken SequenceToken => realToken;
         public MemoryMessageData MessageData { get; set; }

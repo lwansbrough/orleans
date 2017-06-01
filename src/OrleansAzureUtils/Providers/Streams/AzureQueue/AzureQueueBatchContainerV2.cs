@@ -24,7 +24,7 @@ namespace Orleans.Providers.Streams.AzureQueue
         [JsonProperty]
         private readonly Dictionary<string, object> requestContext;
 
-        public Guid StreamGuid { get; }
+        public byte[] StreamKey { get; }
 
         public String StreamNamespace { get; }
 
@@ -37,21 +37,21 @@ namespace Orleans.Providers.Streams.AzureQueue
 
         [JsonConstructor]
         public AzureQueueBatchContainerV2(
-            Guid streamGuid,
+            byte[] streamKey,
             String streamNamespace,
             List<object> events,
             Dictionary<string, object> requestContext,
             EventSequenceTokenV2 sequenceToken)
-            : this(streamGuid, streamNamespace, events, requestContext)
+            : this(streamKey, streamNamespace, events, requestContext)
         {
             this.sequenceToken = sequenceToken;
         }
 
-        public AzureQueueBatchContainerV2(Guid streamGuid, String streamNamespace, List<object> events, Dictionary<string, object> requestContext)
+        public AzureQueueBatchContainerV2(byte[] streamKey, String streamNamespace, List<object> events, Dictionary<string, object> requestContext)
         {
             if (events == null) throw new ArgumentNullException(nameof(events), "Message contains no events");
 
-            StreamGuid = streamGuid;
+            StreamKey = streamKey;
             StreamNamespace = streamNamespace;
             this.events = events;
             this.requestContext = requestContext;
@@ -84,7 +84,7 @@ namespace Orleans.Providers.Streams.AzureQueue
 
         public override string ToString()
         {
-            return $"[AzureQueueBatchContainerV2:Stream={StreamGuid},#Items={events.Count}]";
+            return $"[AzureQueueBatchContainerV2:Stream={BitConverter.ToString(StreamKey)},#Items={events.Count}]";
         }
     }
 }

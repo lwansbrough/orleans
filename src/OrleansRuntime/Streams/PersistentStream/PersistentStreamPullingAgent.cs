@@ -434,7 +434,7 @@ namespace Orleans.Streams
             foreach (var group in
                 multiBatch
                 .Where(m => m != null)
-                .GroupBy(container => new Tuple<Guid, string>(container.StreamGuid, container.StreamNamespace)))
+                .GroupBy(container => new Tuple<byte[], string>(container.StreamKey, container.StreamNamespace)))
             {
                 var streamId = StreamId.GetStreamId(group.Key.Item1, queueAdapter.Name, group.Key.Item2);
                 StreamSequenceToken startToken = group.First().SequenceToken;

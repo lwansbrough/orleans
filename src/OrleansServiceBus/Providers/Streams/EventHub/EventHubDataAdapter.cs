@@ -13,6 +13,7 @@ using Orleans.Serialization;
 using Orleans.Streams;
 using System.Collections.Concurrent;
 using Orleans.Runtime;
+using System.Collections;
 
 namespace Orleans.ServiceBus.Providers
 {
@@ -23,9 +24,9 @@ namespace Orleans.ServiceBus.Providers
     public struct CachedEventHubMessage
     {
         /// <summary>
-        /// Guid of streamId this event is part of
+        /// StreamId byte array this event is part of
         /// </summary>
-        public Guid StreamGuid;
+        public byte[] StreamKey;
         /// <summary>
         /// EventHub sequence number.  Position of event in partition
         /// </summary>
@@ -82,7 +83,7 @@ namespace Orleans.ServiceBus.Providers
         public EventHubMessage(CachedEventHubMessage cachedMessage, SerializationManager serializationManager)
         {
             int readOffset = 0;
-            StreamIdentity = new StreamIdentity(cachedMessage.StreamGuid, SegmentBuilder.ReadNextString(cachedMessage.Segment, ref readOffset));
+            StreamIdentity = new StreamIdentity(cachedMessage.StreamKey, SegmentBuilder.ReadNextString(cachedMessage.Segment, ref readOffset));
             Offset = SegmentBuilder.ReadNextString(cachedMessage.Segment, ref readOffset);
             PartitionKey = SegmentBuilder.ReadNextString(cachedMessage.Segment, ref readOffset);
             SequenceNumber = cachedMessage.SequenceNumber;
@@ -150,8 +151,8 @@ namespace Orleans.ServiceBus.Providers
         /// </summary>
         public bool Equals(CachedEventHubMessage cachedMessage, IStreamIdentity streamIdentity)
         {
-            int result = cachedMessage.StreamGuid.CompareTo(streamIdentity.Guid);
-            if (result != 0) return false;
+            var equal = cachedMessage.StreamKey.SequenceEqual(streamIdentity.Key);
+            if (!equal) return false;
 
             int readOffset = 0;
             string decodedStreamNamespace = SegmentBuilder.ReadNextString(cachedMessage.Segment, ref readOffset);
@@ -196,7 +197,7 @@ namespace Orleans.ServiceBus.Providers
         public StreamPosition QueueMessageToCachedMessage(ref CachedEventHubMessage cachedMessage, EventData queueMessage, DateTime dequeueTimeUtc)
         {
             StreamPosition streamPosition = GetStreamPosition(queueMessage);
-            cachedMessage.StreamGuid = streamPosition.StreamIdentity.Guid;
+            cachedMessage.StreamKey = streamPosition.StreamIdentity.Key;
 #if NETSTANDARD
             cachedMessage.SequenceNumber = queueMessage.SystemProperties.SequenceNumber;
             cachedMessage.EnqueueTimeUtc = queueMessage.SystemProperties.EnqueuedTimeUtc;

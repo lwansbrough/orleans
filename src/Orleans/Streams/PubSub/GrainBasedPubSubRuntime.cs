@@ -62,7 +62,7 @@ namespace Orleans.Streams
         private IPubSubRendezvousGrain GetRendezvousGrain(StreamId streamId)
         {
             return grainFactory.GetGrain<IPubSubRendezvousGrain>(
-                primaryKey: streamId.Guid,
+                primaryKey: streamId.Key,
                 keyExtension: streamId.ProviderName + "_" + streamId.Namespace);
         }
 

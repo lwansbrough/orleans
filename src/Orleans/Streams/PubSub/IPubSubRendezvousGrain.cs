@@ -5,7 +5,7 @@ using Orleans.Streams.Core;
 
 namespace Orleans.Streams
 {
-    internal interface IPubSubRendezvousGrain : IGrainWithGuidCompoundKey
+    internal interface IPubSubRendezvousGrain : IGrainWithBinaryCompoundKey
     {
         Task<ISet<PubSubSubscriptionState>> RegisterProducer(StreamId streamId, IStreamProducerExtension streamProducer);
 

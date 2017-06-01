@@ -23,9 +23,11 @@ namespace Orleans.Streams
         private uint uniformHashCache;
         private readonly StreamIdInternerKey key;
 
-        // Keep public, similar to GrainId.GetPrimaryKey. Some app scenarios might need that.
-        public Guid Guid {
-            get {
+        //// Keep public, similar to GrainId.GetPrimaryKey. Some app scenarios might need that.
+        private Guid Guid
+        {
+            get
+            {
                 if (!IsGuid)
                     throw new InvalidOperationException("Not a GUID.");
                 return new Guid(key.Bytes);
@@ -34,7 +36,7 @@ namespace Orleans.Streams
 
         public bool IsGuid { get { return key.Bytes.Length == 16; } }
 
-        public byte[] Bytes { get { return key.Bytes; } }
+        public byte[] Key { get { return key.Bytes; } }
 
         // I think it might be more clear if we called this the ActivationNamespace.
         public string Namespace { get { return key.Namespace; } }
@@ -94,7 +96,7 @@ namespace Orleans.Streams
         {
             if (uniformHashCache == 0)
             {
-                byte[] idBytes = Bytes;
+                byte[] idBytes = Key;
                 byte[] providerBytes = Encoding.UTF8.GetBytes(ProviderName);
                 byte[] allBytes;
                 if (Namespace == null)
@@ -118,7 +120,7 @@ namespace Orleans.Streams
 
         public override string ToString()
         {
-            var idString = IsGuid ? Guid.ToString() : Convert.ToBase64String(Bytes);
+            var idString = IsGuid ? Guid.ToString() : Convert.ToBase64String(Key);
             return Namespace == null ? 
                 idString : 
                 String.Format("{0}{1}-{2}", Namespace != null ? (String.Format("{0}-", Namespace)) : "", idString, ProviderName);
@@ -129,7 +131,7 @@ namespace Orleans.Streams
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             // Use the AddValue method to specify serialized values.
-            info.AddValue("Bytes", Bytes, typeof(byte[]));
+            info.AddValue("Key", Key, typeof(byte[]));
             info.AddValue("ProviderName", ProviderName, typeof(string));
             info.AddValue("Namespace", Namespace, typeof(string));
         }
@@ -138,7 +140,7 @@ namespace Orleans.Streams
         protected StreamId(SerializationInfo info, StreamingContext context)
         {
             // Reset the property value using the GetValue method.
-            var id = (Guid) info.GetValue("Bytes", typeof(byte[]));
+            var id = (byte[]) info.GetValue("Key", typeof(byte[]));
             var providerName = (string) info.GetValue("ProviderName", typeof(string));
             var nameSpace = (string) info.GetValue("Namespace", typeof(string));
             key = new StreamIdInternerKey(id, providerName, nameSpace);

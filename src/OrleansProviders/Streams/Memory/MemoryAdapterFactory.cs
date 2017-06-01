@@ -118,6 +118,33 @@ namespace Orleans.Providers
         /// Writes a set of events to the queue as a single batch associated with the provided streamId.
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <param name="streamKey"></param>
+        /// <param name="streamNamespace"></param>
+        /// <param name="events"></param>
+        /// <param name="token"></param>
+        /// <param name="requestContext"></param>
+        /// <returns></returns>
+        public async Task QueueMessageBatchAsync<T>(byte[] streamKey, string streamNamespace, IEnumerable<T> events, StreamSequenceToken token, Dictionary<string, object> requestContext)
+        {
+            try
+            {
+                var queueId = streamQueueMapper.GetQueueForStream(streamKey, streamNamespace);
+                ArraySegment<byte> bodyBytes = serializer.Serialize(new MemoryMessageBody(events.Cast<object>(), requestContext));
+                var messageData = MemoryMessageData.Create(streamKey, streamNamespace, bodyBytes);
+                IMemoryStreamQueueGrain queueGrain = GetQueueGrain(queueId);
+                await queueGrain.Enqueue(messageData);
+            }
+            catch (Exception exc)
+            {
+                logger.Error((int)ProviderErrorCode.MemoryStreamProviderBase_QueueMessageBatchAsync, "Exception thrown in MemoryAdapterFactory.QueueMessageBatchAsync.", exc);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Writes a set of events to the queue as a single batch associated with the provided streamId.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="streamGuid"></param>
         /// <param name="streamNamespace"></param>
         /// <param name="events"></param>

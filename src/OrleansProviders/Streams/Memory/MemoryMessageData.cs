@@ -10,9 +10,9 @@ namespace Orleans.Providers
     public struct MemoryMessageData
     {
         /// <summary>
-        /// Stream Guid of the event data.
+        /// Stream key of the event data.
         /// </summary>
-        public Guid StreamGuid;
+        public byte[] StreamKey;
         /// <summary>
         /// Stream namespace.
         /// </summary>
@@ -26,14 +26,19 @@ namespace Orleans.Providers
         /// </summary>
         public ArraySegment<byte> Payload;
 
-        internal static MemoryMessageData Create(Guid streamGuid, String streamNamespace, ArraySegment<byte> arraySegment)
+        internal static MemoryMessageData Create(byte[] streamKey, String streamNamespace, ArraySegment<byte> arraySegment)
         {
             return new MemoryMessageData
             {
-                StreamGuid = streamGuid,
+                StreamKey = streamKey,
                 StreamNamespace = streamNamespace,
                 Payload = arraySegment
             };
+        }
+
+        internal static MemoryMessageData Create(Guid streamGuid, String streamNamespace, ArraySegment<byte> arraySegment)
+        {
+            return Create(streamGuid.ToByteArray(), streamNamespace, arraySegment);
         }
     }
 }
